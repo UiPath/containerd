@@ -30,6 +30,7 @@ import (
 	"github.com/containerd/containerd/snapshots"
 	"github.com/containerd/containerd/snapshots/storage"
 	"github.com/containerd/continuity/fs"
+	"golang.org/x/sys/unix"
 )
 
 // viewHookHelper is only used in test for recover the filesystem.
@@ -448,6 +449,35 @@ func (o *snapshotter) Close() error {
 	return o.ms.Close()
 }
 
+func cloneFile(target, source *os.File) error {
+	sc, err := source.SyscallConn()
+	if err != nil {
+		return err
+	}
+	tc, err := target.SyscallConn()
+	if err != nil {
+		return err
+	}
+
+	var err2, err3 error
+
+	err = tc.Control(func(dfd uintptr) {
+		err2 = sc.Control(func(sfd uintptr) {
+			// int ioctl(int dest_fd, FICLONE, int src_fd);
+			err3 = unix.IoctlFileClone(int(dfd), int(sfd))
+		})
+	})
+
+	if err != nil {
+		return err
+	}
+	if err2 != nil {
+		return err2
+	}
+
+	return err3
+}
+
 func copyFileWithSync(target, source string) error {
 	// The Go stdlib does not seem to have an efficient os.File.ReadFrom
 	// routine for other platforms like it does on Linux with
@@ -464,14 +494,23 @@ func copyFileWithSync(target, source string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open source %s: %w", source, err)
 	}
+	src.Sync()
 	defer src.Close()
 	tgt, err := os.Create(target)
 	if err != nil {
 		return fmt.Errorf("failed to open target %s: %w", target, err)
 	}
-	defer tgt.Close()
-	defer tgt.Sync()
 
-	_, err = io.Copy(tgt, src)
+	defer tgt.Close()
+
+	err = cloneFile(tgt, src)
+	if err != nil {
+		defer tgt.Sync()
+
+		tgt.Truncate(0)
+		tgt.Seek(0, io.SeekStart)
+
+		_, err = io.Copy(tgt, src)
+	}
 	return err
 }
