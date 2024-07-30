@@ -456,6 +456,7 @@ func copyFileWithSync(target, source string) error {
 	// a fun surprise waiting below.
 	//
 	// TODO: Enlighten other platforms (windows?)
+	log.L.Infof("Copying source %v to target %v", source, target)
 	if runtime.GOOS == "darwin" {
 		return fs.CopyFile(target, source)
 	}
@@ -470,8 +471,9 @@ func copyFileWithSync(target, source string) error {
 		return fmt.Errorf("failed to open target %s: %w", target, err)
 	}
 	defer tgt.Close()
-	defer tgt.Sync()
 
 	_, err = io.Copy(tgt, src)
+	tgt.Sync()
+	log.L.Infof("Copyied source %v to target %v, err: %v", source, target, err)
 	return err
 }

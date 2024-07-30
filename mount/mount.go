@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/containerd/containerd/log"
 	"github.com/containerd/continuity/fs"
 )
 
@@ -43,9 +44,17 @@ type Mount struct {
 // present, it assumes that parent mounts come before child mounts.
 func All(mounts []Mount, target string) error {
 	for _, m := range mounts {
+		target, err := fs.RootPath(target, m.Target)
+		log.L.Infof("Mounting source %v, target: %v", m.Source, target)
+		if err != nil {
+			return err
+		}
+
 		if err := m.Mount(target); err != nil {
 			return err
 		}
+
+		log.L.Infof("Mounted source %v, target: %v", m.Source, target)
 	}
 	return nil
 }
@@ -59,11 +68,15 @@ func UnmountMounts(mounts []Mount, target string, flags int) error {
 			return err
 		}
 
+		log.L.Infof("Unmounting source %v, target: %v", mounts[i].Source, mountpoint)
+
 		if err := UnmountAll(mountpoint, flags); err != nil {
 			if i == len(mounts)-1 { // last mount
 				return err
 			}
 		}
+
+		log.L.Infof("Unmounted source %v, target: %v", mounts[i].Source, mountpoint)
 	}
 	return nil
 }

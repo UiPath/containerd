@@ -26,6 +26,7 @@ import (
 	"unsafe"
 
 	kernel "github.com/containerd/containerd/contrib/seccomp/kernelversion"
+	"github.com/containerd/containerd/log"
 	"github.com/containerd/containerd/pkg/randutil"
 	"golang.org/x/sys/unix"
 )
@@ -203,6 +204,8 @@ func setupLoop(backingFile string, param LoopParams) (*os.File, error) {
 			}
 			return nil, err
 		}
+
+		log.L.Infof("Loop device %v for file %v", loopDev, backingFile)
 
 		return file, nil
 	}

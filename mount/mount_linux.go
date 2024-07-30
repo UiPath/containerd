@@ -25,6 +25,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containerd/containerd/log"
+	"github.com/moby/sys/mountinfo"
 	exec "golang.org/x/sys/execabs"
 	"golang.org/x/sys/unix"
 )
@@ -122,7 +124,10 @@ func (m *Mount) mount(target string) (err error) {
 
 // Unmount the provided mount path with the flags
 func Unmount(target string, flags int) error {
-	if err := unmount(target, flags); err != nil && err != unix.EINVAL {
+	err := unmount(target, flags)
+	log.L.Infof("simple unmount for target: %v, err: %v", target, err)
+
+	if err != nil && err != unix.EINVAL {
 		return err
 	}
 	return nil
@@ -191,6 +196,13 @@ func UnmountAll(mount string, flags int) error {
 		return nil
 	}
 
+	mounts, err2 := mountinfo.GetMounts(mountinfo.SingleEntryFilter(mount))
+	if err2 == nil {
+		for _, m := range mounts {
+			log.L.Infof("Unmounting device: %v, target: %v", m.Source, mount)
+		}
+	}
+
 	for {
 		if err := unmount(mount, flags); err != nil {
 			// EINVAL is returned if the target is not a
@@ -199,6 +211,18 @@ func UnmountAll(mount string, flags int) error {
 			// things (such as invalid flags) which we
 			// unfortunately end up squelching here too.
 			if err == unix.EINVAL {
+				mount2, err2 := mountinfo.GetMounts(func(i *mountinfo.Info) (skip bool, stop bool) { return false, false })
+				if err2 == nil {
+					for _, m := range mounts {
+						if m.FSType == "ext4" {
+							for _, m2 := range mount2 {
+								if m2.Source == m.Source {
+									log.L.Infof("Device %v still mounted on %v", m2.Source, m2.Mountpoint)
+								}
+							}
+						}
+					}
+				}
 				return nil
 			}
 			return err
