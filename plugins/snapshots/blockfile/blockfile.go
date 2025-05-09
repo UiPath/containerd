@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/containerd/containerd/v2/core/mount"
 	"github.com/containerd/containerd/v2/core/snapshots"
@@ -433,6 +434,8 @@ func (o *snapshotter) mounts(s storage.Snapshot) []mount.Mount {
 	} else {
 		source = o.getBlockFile(s.ParentIDs[0])
 	}
+
+	log.G(context.Background()).Infof("snapmount: %d %s %s %s", s.Kind, source, o.fsType, strings.Join(mountOptions, ","))
 
 	return []mount.Mount{
 		{

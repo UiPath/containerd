@@ -320,7 +320,9 @@ func (u *Unpacker) unpack(
 		for try := 1; try <= 3; try++ {
 			// Prepare snapshot with from parent, label as root
 			key = fmt.Sprintf(snapshots.UnpackKeyFormat, uniquePart(), chainID)
+			log.G(ctx).Infof("before prepare")
 			mounts, err = sn.Prepare(ctx, key, parent, opts...)
+			log.G(ctx).Infof("after prepare")
 			if err != nil {
 				if errdefs.IsAlreadyExists(err) {
 					if _, err := sn.Stat(ctx, chainID); err != nil {
