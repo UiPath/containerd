@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os/exec"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -381,6 +382,22 @@ func (u *Unpacker) unpack(
 
 		diff, err := a.Apply(ctx, desc, mounts, unpack.ApplyOpts...)
 		if err != nil {
+			found := false
+			filepath := ""
+			if len(mounts) == 1 {
+				for _, opt := range mounts[0].Options {
+					if opt == "loop" {
+						found = true
+						filepath = mounts[0].Source
+					}
+				}
+			}
+
+			if found {
+				out, _ := exec.Command("tune2fs", "-l", filepath).CombinedOutput()
+				log.G(ctx).Errorf("fsstat: %s %s", filepath, out)
+			}
+
 			cleanup.Do(ctx, abort)
 			return fmt.Errorf("failed to extract layer %s: %w", diffIDs[i], err)
 		}

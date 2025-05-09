@@ -20,6 +20,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
+
+	"golang.org/x/sys/unix"
 
 	"github.com/containerd/log"
 )
@@ -61,11 +64,24 @@ func WithTempMount(ctx context.Context, mounts []Mount, f func(root string) erro
 				err = fmt.Errorf("%s: %w", uerr.Error(), err)
 			}
 		}
+		log.G(ctx).Infof("after umount: %s", root)
 	}()
+
+	log.G(ctx).Info("before mount: %s", root)
+
+	l, err := os.Readlink(fmt.Sprintf("/proc/%d/task/%d/ns/mnt", os.Getpid(), unix.Gettid()))
+	log.G(ctx).Infof("mount namespace: %s", l)
 
 	if uerr = All(RemoveVolatileOption(mounts), root); uerr != nil {
 		return fmt.Errorf("failed to mount %s: %w", root, uerr)
 	}
+
+	b, _ := os.ReadFile(fmt.Sprintf("/proc/%d/task/%d/mounts", os.Getpid(), unix.Gettid()))
+	log.G(ctx).Infof("mountslist: %s %s", root, string(b))
+	for i, m := range mounts {
+		log.G(ctx).Infof("%d %s %s %s %s %s", i, root, m.Type, m.Source, m.Target, strings.Join(m.Options, ","))
+	}
+
 	if err := f(root); err != nil {
 		return fmt.Errorf("mount callback failed on %s: %w", root, err)
 	}
