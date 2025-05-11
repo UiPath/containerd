@@ -67,7 +67,7 @@ func WithTempMount(ctx context.Context, mounts []Mount, f func(root string) erro
 		log.G(ctx).Infof("after umount: %s", root)
 	}()
 
-	log.G(ctx).Info("before mount: %s", root)
+	log.G(ctx).Infof("before mount: %s", root)
 
 	l, err := os.Readlink(fmt.Sprintf("/proc/%d/task/%d/ns/mnt", os.Getpid(), unix.Gettid()))
 	log.G(ctx).Infof("mount namespace: %s", l)
@@ -79,7 +79,7 @@ func WithTempMount(ctx context.Context, mounts []Mount, f func(root string) erro
 	b, _ := os.ReadFile(fmt.Sprintf("/proc/%d/task/%d/mounts", os.Getpid(), unix.Gettid()))
 	log.G(ctx).Infof("mountslist: %s %s", root, string(b))
 	for i, m := range mounts {
-		log.G(ctx).Infof("%d %s %s %s %s %s", i, root, m.Type, m.Source, m.Target, strings.Join(m.Options, ","))
+		log.G(ctx).Infof("%d %s %s %s %s %s %p", i, root, m.Type, m.Source, m.Target, strings.Join(m.Options, ","), m.Options)
 	}
 
 	if err := f(root); err != nil {

@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/containerd/containerd/v2/core/content"
@@ -90,6 +91,10 @@ func (s *fsApplier) Apply(ctx context.Context, desc ocispec.Descriptor, mounts [
 	digester := digest.Canonical.Digester()
 	rc := &readCounter{
 		r: io.TeeReader(processor, digester.Hash()),
+	}
+
+	for i, m := range mounts {
+		log.G(ctx).Infof("apply: %d %s %s %s", i, m.Source, m.Type, strings.Join(m.Options, ","))
 	}
 
 	if err := apply(ctx, mounts, rc, config.SyncFs); err != nil {

@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -351,6 +352,10 @@ func (u *Unpacker) unpack(
 			if err := sn.Remove(ctx, key); err != nil {
 				log.G(ctx).WithError(err).Errorf("failed to cleanup %q", key)
 			}
+		}
+
+		for i, m := range mounts {
+			log.G(ctx).Infof("unpack: %d %s %s %s", i, m.Source, m.Type, strings.Join(m.Options, ","))
 		}
 
 		if fetchErr == nil {

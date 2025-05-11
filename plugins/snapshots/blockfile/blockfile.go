@@ -435,7 +435,7 @@ func (o *snapshotter) mounts(s storage.Snapshot) []mount.Mount {
 		source = o.getBlockFile(s.ParentIDs[0])
 	}
 
-	log.G(context.Background()).Infof("snapmount: %d %s %s %s", s.Kind, source, o.fsType, strings.Join(mountOptions, ","))
+	log.G(context.Background()).Infof("snapmount: %d %s %s %s %s %p", s.Kind, s.ID, source, o.fsType, strings.Join(mountOptions, ","), mountOptions)
 
 	return []mount.Mount{
 		{
