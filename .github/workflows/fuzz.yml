@@ -9,24 +9,24 @@ jobs:
   ci_fuzz:
     name: CI Fuzz
     if: github.repository == 'containerd/containerd'
-    runs-on: ubuntu-latest
+    runs-on: uipath-ubuntu-latest
     timeout-minutes: 60
     steps:
     - name: Build Fuzzers
       id: build
-      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@8915eb6238a087e20fc092780464d0793bd6be09  # master
       with:
         oss-fuzz-project-name: 'containerd'
         language: go
     - name: Run Fuzzers
-      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
+      uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@8915eb6238a087e20fc092780464d0793bd6be09  # master
       with:
         oss-fuzz-project-name: 'containerd'
         fuzz-seconds: 300
         language: go
       continue-on-error: true
     - name: Upload Crash
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
       if: failure() && steps.build.outcome == 'success'
       with:
         name: artifacts
@@ -37,9 +37,9 @@ jobs:
   go_test_fuzz:
     name : go test -fuzz
     if: github.repository == 'containerd/containerd'
-    runs-on: ubuntu-latest
+    runs-on: uipath-ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - uses: ./.github/actions/install-go
       - run: script/go-test-fuzz.sh

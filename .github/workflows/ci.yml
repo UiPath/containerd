@@ -23,12 +23,12 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-22.04, actuated-arm64-4cpu-16gb, macos-12, windows-2019]
+        os: [uipath-ubuntu-22.04, actuated-arm64-4cpu-16gb, macos-12, windows-2019]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - uses: ./.github/actions/install-go
-      - uses: golangci/golangci-lint-action@v3
+      - uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc  # v3.7.0
         with:
           version: v1.55.2
           skip-cache: true
@@ -40,18 +40,18 @@ jobs:
   project:
     name: Project Checks
     if: github.repository == 'containerd/containerd'
-    runs-on: ubuntu-22.04
+    runs-on: uipath-ubuntu-22.04
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           path: src/github.com/containerd/containerd
           fetch-depth: 100
 
       - uses: ./src/github.com/containerd/containerd/.github/actions/install-go
 
-      - uses: containerd/project-checks@v1.1.0
+      - uses: containerd/project-checks@434a07157608eeaa1d5c8d4dd506154204cd9401  # v1.1.0
         with:
           working-directory: src/github.com/containerd/containerd
           repo-access-token: ${{ secrets.GITHUB_TOKEN }}
@@ -67,7 +67,7 @@ jobs:
   #
   protos:
     name: Protobuf
-    runs-on: ubuntu-22.04
+    runs-on: uipath-ubuntu-22.04
     timeout-minutes: 5
 
     defaults:
@@ -75,7 +75,7 @@ jobs:
         working-directory: src/github.com/containerd/containerd
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           path: src/github.com/containerd/containerd
 
@@ -101,11 +101,11 @@ jobs:
 
   man:
     name: Manpages
-    runs-on: ubuntu-22.04
+    runs-on: uipath-ubuntu-22.04
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - uses: ./.github/actions/install-go
       - run: go install github.com/cpuguy83/go-md2man/v2@v2.0.2
       - run: make man
@@ -115,7 +115,7 @@ jobs:
   crossbuild:
     name: Crossbuild Binaries
     needs: [project, linters, protos, man]
-    runs-on: ubuntu-22.04
+    runs-on: uipath-ubuntu-22.04
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -136,7 +136,7 @@ jobs:
             goarm: "7"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - uses: ./.github/actions/install-go
       - run: |
           set -e -x
@@ -187,10 +187,10 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-22.04, actuated-arm64-4cpu-16gb, macos-12, windows-2019, windows-2022]
+        os: [uipath-ubuntu-22.04, actuated-arm64-4cpu-16gb, macos-12, windows-2019, windows-2022]
         go-version: ["1.21.6", "1.22.0"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - uses: ./.github/actions/install-go
       - name: Make
         run: |
@@ -219,13 +219,13 @@ jobs:
         working-directory: src/github.com/containerd/containerd
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           path: src/github.com/containerd/containerd
 
       - uses: ./src/github.com/containerd/containerd/.github/actions/install-go
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           repository: kubernetes-sigs/cri-tools
           path: src/github.com/kubernetes-sigs/cri-tools
@@ -354,7 +354,7 @@ jobs:
           }
           critest.exe --runtime-endpoint=npipe://.//pipe//containerd-containerd --test-images-file='${{env.CRI_TEST_IMAGES}}' --report-dir='${{github.workspace}}/critestreport' $skip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()
         with:
           name: TestResults ${{ matrix.os }}
@@ -375,12 +375,12 @@ jobs:
         runtime:
           - io.containerd.runc.v2
         runc: [runc, crun]
-        os: [ubuntu-22.04, actuated-arm64-4cpu-16gb]
+        os: [uipath-ubuntu-22.04, actuated-arm64-4cpu-16gb]
 
     env:
       GOTEST: gotestsum --
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - uses: ./.github/actions/install-go
 
       - name: Install containerd dependencies
@@ -488,7 +488,7 @@ jobs:
           sudo lsmod
           sudo dmesg -T -f kern
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()
         with:
           name: TestResults ${{ matrix.runtime }} ${{matrix.runc}} ${{ matrix.os }}
@@ -500,7 +500,7 @@ jobs:
 
   integration-vagrant:
     name: Vagrant integration
-    runs-on: ubuntu-22.04
+    runs-on: uipath-ubuntu-22.04
     timeout-minutes: 60
     needs: [project, linters, protos, man]
 
@@ -521,8 +521,8 @@ jobs:
           cat /etc/os-release
           cat /proc/cpuinfo
           free -mt
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
         with:
           path: /root/.vagrant.d
           key: vagrant-${{ matrix.box }}
@@ -551,12 +551,12 @@ jobs:
   tests-cri-in-userns:
     name: "CRI-in-UserNS"
 
-    runs-on: ubuntu-22.04
+    runs-on: uipath-ubuntu-22.04
     timeout-minutes: 40
     needs: [project, linters, protos, man]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - name: Set up cgroup v2 delegation
         run: |
           sudo mkdir -p /etc/systemd/system/user@.service.d
@@ -581,7 +581,7 @@ jobs:
       GOTEST: gotestsum --
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - uses: ./.github/actions/install-go
       - run: script/setup/install-gotestsum
       - run: script/setup/install-teststat
@@ -594,7 +594,7 @@ jobs:
         if: always()
       - run: script/test/test2annotation.sh *-gotest.json
         if: always()
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()
         with:
           name: TestResults MacOS
